@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import {
     View,
-    FlatList
+    FlatList,
+    Text,
+    ActivityIndicator
 } from 'react-native';
 
 import * as acions from './actions';
@@ -13,39 +15,45 @@ import Loading from './components/Loading';
 
 class Users extends Component {
     state = {
-        page: this.props.page,
+        page: 1,
         refreshing: false,
-        loading: this.props.loading
+        loading: false,
+        noMoreUsers: false,
     }
 
-    componentWillMount() {
-        this.fetchUsers(this.props.page);
+    componentDidMount() {
+        if (this.state.page === 1) {
+            this.fetchUsers();
+        }
     }
 
-
-    fetchUsers = (page) => {
-        this.props.makeRequest(page);
+    fetchUsers = async () => {
+        this.setState({ loading: true });
+        await this.props.makeRequest(this.state.page);
     }
 
     handleMoreUsers = () => {
         this.setState(
             {
-                page: this.state.page + 1
+                page: this.state.page + 1,
+                loading: true
             },
             () => {
-                this.fetchUsers(this.state.page);
+                this.fetchUsers();
             }
         );
+        this.setState({ loading: false });
     }
 
     handleRefreshing = () => {
         this.props.isRefreshing();
         this.setState(
             {
-                page: 1
+                page: 1,
+                noMoreUsers: false
             },
             () => {
-                this.fetchUsers(1);
+                this.fetchUsers();
             }
         );
     }
@@ -68,39 +76,63 @@ class Users extends Component {
     };
 
     renderFooter = () => {
-        if (!this.props.loading) return null;
+        console.log('loading ->', this.props.loading);
+
+
+        if (!this.state.loading) {
+            return null;
+        }
 
         return (
-            <Loading />
+            <View
+                style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    paddingVertical: 100,
+                    borderTopWidth: 1,
+                    borderColor: '#CED0CE'
+                }}
+            >
+                <Loading />
+            </View>
         );
     };
 
+    renderFlatList = () => {
+        if (this.props.users) {
+            return (
+                <FlatList
+                    data={this.props.users}
+                    renderItem={({ item }) => {
+                        return (
+                            <UserCard data={item} />
+                        );
+                    }}
+                    keyExtractor={(item, index) => index.toString()}
+                    ItemSeparatorComponent={this.renderSeparator}
+                    ListHeaderComponent={this.renderHeader}
+                    onRefresh={this.handleRefreshing}
+                    refreshing={this.props.refresh}
+                    onEndReached={this.handleMoreUsers}
+                    onEndReachedThreshold={0.1}
+                />
+            );
+        }
+    }
+
     render() {
         return (
-            <FlatList
-                data={this.props.users}
-                renderItem={({ item }) => {
-                    console.log('user', item);
-                    return (
-                        <UserCard data={item} />
-                    );
-                }}
-                keyExtractor={(item, index) => index.toString()}
-                ItemSeparatorComponent={this.renderSeparator}
-                ListHeaderComponent={this.renderHeader}
-                ListFooterComponent={this.renderFooter}
-                onRefresh={this.handleRefreshing}
-                refreshing={this.props.refresh}
-                onEndReached={this.handleMoreUsers}
-                onEndReachedThreshold={0.5}
-            />
+            <View>
+                {this.renderFlatList()}
+                {this.renderFooter()}
+            </View>
         );
     }
 }
 
 function mapStateToProps({ fetchUsers }) {
-    const { loading, users, page, refresh } = fetchUsers;
-    return { loading, users, page, refresh };
+    const { loading, users, page, refresh, noMoreUsers } = fetchUsers;
+    return { loading, users, page, refresh, noMoreUsers };
 }
 
 export default connect(mapStateToProps, acions)(Users);

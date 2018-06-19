@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 
 
-export default class Loading extends Component {
+class Loading extends Component {
 
     state = {
         animated: new Animated.Value(0.2),
@@ -21,7 +21,7 @@ export default class Loading extends Component {
         Animated.stagger(3000, [
             Animated.loop(
                 Animated.parallel([
-                    Animated.spring(animated, {
+                    Animated.timing(animated, {
                         toValue: 1,
                         duration: 3000
                     }),
@@ -37,7 +37,7 @@ export default class Loading extends Component {
                         toValue: 1,
                         duration: 1500
                     }),
-                    Animated.spring(opacity2, {
+                    Animated.timing(opacity2, {
                         toValue: 0,
                         duration: 1500
                     })
@@ -48,7 +48,7 @@ export default class Loading extends Component {
 
     render() {
         return (
-            <View>
+            <View style={styles.container}>
                 <Animated.View
                     style={[
                         {
@@ -88,7 +88,11 @@ export default class Loading extends Component {
     }
 }
 
+export default Loading;
+
 const styles = {
+    contaier: {
+    },
     animatedCircle: {
         width: 100,
         height: 100,

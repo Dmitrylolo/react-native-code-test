@@ -6,6 +6,8 @@ import axios from 'axios';
 import store from './store';
 
 import Users from './Users';
+import UsersWithoutRedux from './UsersWithoutRedux';
+import Loading from './components/Loading';
 
 export default class App extends React.Component {
   componentDidMount() {
@@ -20,9 +22,10 @@ export default class App extends React.Component {
   render() {
     return (
       <Provider store={store}>
-        <View>
+        <View style={{ flex: 1 }}>
           <View
             style={{
+              flex: 0.15,
               alignItems: 'center',
               width: '100%',
               backgroundColor: 'lightgrey',
@@ -31,7 +34,9 @@ export default class App extends React.Component {
           >
             <Text style={styles.text}>Users</Text>
           </View>
-          <Users />
+          <View style={{ flex: 2 }}>
+            <Users />
+          </View>
         </View>
       </Provider>
     );

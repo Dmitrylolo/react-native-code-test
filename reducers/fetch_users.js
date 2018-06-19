@@ -1,48 +1,59 @@
+import _ from 'lodash';
 import {
     FETCH_FIRST_USERS,
     FETCH_USERS,
     LOADING,
     ERROR,
-    REFRESH
+    REFRESH,
+    NEXT_PAGE,
+    NO_MORE_USERS
 } from '../actions/types';
 
 const INITIAL_STATE = {
     loading: false,
+    noMoreUsers: false,
     refresh: false,
-    page: 1,
     error: null,
-    users: []
+    users: [],
 };
 
 export default (state = INITIAL_STATE, actions) => {
     switch (actions.type) {
         case FETCH_FIRST_USERS:
             return {
+                ...state,
                 users: actions.payload,
-                page: 2,
-                loading: false,
-                refresh: false,
-                error: null
+                loading: false
             };
         case FETCH_USERS:
             return {
-                users: [...state.users, actions.payload],
-                page: state.page + 1,
+                ...state,
+                users: _.sortBy([...state.users, ...actions.payload], o => o.id),
                 loading: false,
                 refresh: false,
-                error: null
+                error: null,
+                noMoreUsers: actions.noMoreUsers
+            };
+        case NO_MORE_USERS:
+            return {
+                ...state,
+                noMoreUsers: actions.payload
+            };
+        case NEXT_PAGE:
+            return {
+                ...state,
+                page: state.page + 1
             };
         case REFRESH:
             return {
-                ...state,
+                ...INITIAL_STATE,
                 refresh: true,
-                page: 1,
-                users: []
+                loading: true
             };
         case LOADING:
             return {
                 ...state,
-                loading: true
+                loading: actions.payload
             };
         case ERROR:
             return {
